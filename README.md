@@ -152,7 +152,7 @@ Contributions are welcome! Please feel free to submit issues or pull requests.
 
 ## License
 
-[To be determined - specify your license]
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Support
 
