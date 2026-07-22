@@ -133,20 +133,38 @@
 
         TEMPLATE_VARS = details.variables || [];
 
-        // Build debug info
-        var msg = 'Template loaded (' + TEMPLATE_VARS.length + ' variables found)';
+        // Build message based on what we found
+        var msg = '';
+        var htmlLength = (details.html_content || '').length;
 
-        // Show ALL fields we got back for debugging
-        msg += '<br><details style="margin-top:4px;"><summary style="cursor:pointer;" class="muted">Debug: Show full response</summary>';
+        if (TEMPLATE_VARS.length > 0) {
+          // Found variables in template
+          msg = 'Template loaded (' + TEMPLATE_VARS.length + ' variables found)';
+        } else if (htmlLength === 0) {
+          // Visual editor template - can't extract variables
+          msg = 'Visual editor template detected. Using variables from FIELD_MAP.<br>';
+          msg += '<span class="muted">Click "+ Add Custom Variable" below if your template needs additional variables.</span>';
+        } else {
+          // Has content but no variables found
+          msg = 'Template loaded but no variables detected.<br>';
+          msg += '<span class="muted">Using FIELD_MAP variables. Add custom variables if needed.</span>';
+        }
+
+        // Add debug info (collapsed by default)
+        msg += '<br><details style="margin-top:4px;"><summary style="cursor:pointer;" class="muted">Debug: Show API response</summary>';
         msg += '<pre style="font-size:10px;background:#f5f5f5;padding:4px;overflow:auto;max-height:200px;">';
         msg += 'UUID: ' + esc(details.uuid || 'none') + '\n';
         msg += 'Name: ' + esc(details.name || 'none') + '\n';
         msg += 'Subject length: ' + (details.subject || '').length + ' chars\n';
-        msg += 'HTML length: ' + (details.html_content || '').length + ' chars\n';
+        msg += 'HTML length: ' + htmlLength + ' chars\n';
         msg += 'Text length: ' + (details.text_content || '').length + ' chars\n';
-        msg += 'Variables: ' + JSON.stringify(details.variables) + '\n\n';
-        msg += '--- First 500 chars of HTML ---\n';
-        msg += esc(details.raw_template_preview || details.html_content || 'none').substring(0, 500);
+        msg += 'Variables found: ' + JSON.stringify(details.variables) + '\n\n';
+        if (htmlLength > 0) {
+          msg += '--- First 500 chars of HTML ---\n';
+          msg += esc(details.raw_template_preview || details.html_content || 'none').substring(0, 500);
+        } else {
+          msg += 'No HTML content (visual editor template)';
+        }
         msg += '</pre></details>';
 
         el('templateMsg').innerHTML = '<span class="msg">' + msg + '</span>';
@@ -166,27 +184,52 @@
     var html = '';
     var seen = {};
 
-    // First, show all template variables (what Blueshift expects)
-    TEMPLATE_VARS.forEach(function(varName) {
-      var value = DATA.variables[varName] || '';
-      var isMapped = DATA.variables.hasOwnProperty(varName);
-      var style = isMapped ? '' : 'border-left: 3px solid #fbbc04;'; // Yellow border for unmapped
-      var hint = isMapped ? '' : ' <span class="muted">(not mapped - add value)</span>';
+    // If we have template variables from the API, show those first
+    if (TEMPLATE_VARS.length > 0) {
+      TEMPLATE_VARS.forEach(function(varName) {
+        var value = DATA.variables[varName] || '';
+        var isMapped = DATA.variables.hasOwnProperty(varName);
+        var style = isMapped ? '' : 'border-left: 3px solid #fbbc04;';
+        var hint = isMapped ? '' : ' <span class="muted">(not mapped - add value)</span>';
 
-      html += '<label class="fld">' + esc(varName) + hint + '</label>'
-        + '<input type="text" data-var="' + esc(varName) + '" value="' + esc(value) + '" style="' + style + '">';
-      seen[varName] = true;
-    });
+        html += '<label class="fld">' + esc(varName) + hint + '</label>'
+          + '<input type="text" data-var="' + esc(varName) + '" value="' + esc(value) + '" style="' + style + '">';
+        seen[varName] = true;
+      });
+    }
 
-    // Then show any mapped variables that aren't in the template (extras from FIELD_MAP)
+    // Show all FIELD_MAP variables (from Config.gs)
     Object.keys(DATA.variables || {}).forEach(function (k) {
       if (!seen[k]) {
-        html += '<label class="fld">' + esc(k) + ' <span class="muted">(extra - not in template)</span></label>'
-          + '<input type="text" data-var="' + esc(k) + '" value="' + esc(DATA.variables[k]) + '" style="border-left: 3px solid #5f6368;">';
+        html += '<label class="fld">' + esc(k) + '</label>'
+          + '<input type="text" data-var="' + esc(k) + '" value="' + esc(DATA.variables[k]) + '">';
+        seen[k] = true;
       }
     });
 
-    wrap.innerHTML = html || '<div class="muted">No variables found. Select a template to see required variables.</div>';
+    // Add button to add custom variables
+    html += '<div style="margin-top:12px;"><button type="button" class="btn ghost" id="addVarBtn">+ Add Custom Variable</button></div>';
+    html += '<div id="customVars"></div>';
+
+    wrap.innerHTML = html || '<div class="muted">No variables mapped. Configure FIELD_MAP in Config.gs.</div>';
+
+    // Wire up add variable button
+    var addBtn = document.getElementById('addVarBtn');
+    if (addBtn) {
+      addBtn.addEventListener('click', function() {
+        var varName = prompt('Variable name (e.g., deal_description):');
+        if (varName) {
+          varName = varName.trim().replace(/[^a-zA-Z0-9_]/g, '_'); // Clean name
+          if (varName && !seen[varName]) {
+            var customVarsDiv = document.getElementById('customVars');
+            var newField = '<label class="fld">' + esc(varName) + ' <span class="muted">(custom)</span></label>'
+              + '<input type="text" data-var="' + esc(varName) + '" value="" style="border-left: 3px solid #1a73e8;">';
+            customVarsDiv.innerHTML += newField;
+            seen[varName] = true;
+          }
+        }
+      });
+    }
   }
 
   // ---- variable fields ----
