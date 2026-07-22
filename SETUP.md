@@ -34,7 +34,7 @@ Create a tab named **Roster** with these headers in row 1:
 
 ### 3. Configure `Config.gs`
 - `RESPONSES_SHEET` — the exact name of your responses tab (default `Form Responses 1`).
-- `TO_EMAIL_COLUMN` — the response column with the customer email (goes in To:).
+- `TO_EMAIL_COLUMNS` — the response column(s) with the customer email (go in To:).
 - `FIELD_MAP` — map each **template variable** (left) to a **response column header** (right). This is the cleanup/mapping layer; add normalization in `Cleanup.gs` as needed.
 - `DEFAULT_TEMPLATE_UUID` — optional; you can also just pick in the dialog dropdown.
 

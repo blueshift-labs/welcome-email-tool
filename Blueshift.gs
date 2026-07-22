@@ -1,15 +1,41 @@
 /**
  * Blueshift.gs — calls to the Blueshift API.
- * Auth: HTTP Basic, username = your User API key, empty password.
- * The key is read from Script Properties (set it via the menu), never hard-coded.
+ * Auth supports two methods:
+ * 1. Session Cookie (preferred): From Google SSO login in browser
+ * 2. API Key: HTTP Basic auth with User API key
+ * Both stored in Script Properties, never hard-coded.
  */
 
-function bsAuthHeader_() {
-  const key = PropertiesService.getScriptProperties().getProperty('BLUESHIFT_API_KEY');
-  if (!key) {
-    throw new Error('Blueshift API key not set. Menu: "Welcome Email" → "Set Blueshift API key".');
+/**
+ * Gets authentication headers for Blueshift API calls.
+ * Prefers session cookie if available, falls back to API key.
+ */
+function bsAuthHeaders_() {
+  const props = PropertiesService.getScriptProperties();
+  const sessionCookie = props.getProperty('BLUESHIFT_SESSION_COOKIE');
+  const apiKey = props.getProperty('BLUESHIFT_API_KEY');
+
+  const headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  };
+
+  if (sessionCookie) {
+    // Use session cookie authentication
+    headers['Cookie'] = sessionCookie;
+  } else if (apiKey) {
+    // Fall back to API key authentication
+    headers['Authorization'] = 'Basic ' + Utilities.base64Encode(apiKey + ':');
+  } else {
+    throw new Error(
+      'Blueshift authentication not set.\n\n' +
+      'Choose one:\n' +
+      '• "Welcome Email" → "Set Session Cookie" (recommended)\n' +
+      '• "Welcome Email" → "Set API Key"'
+    );
   }
-  return 'Basic ' + Utilities.base64Encode(key + ':');
+
+  return headers;
 }
 
 /** List all email templates -> [{uuid, name}], for the dropdown. */
@@ -17,7 +43,7 @@ function bsListTemplates() {
   const url = CONFIG.BLUESHIFT_BASE + '/api/v1/email_templates.json';
   const res = UrlFetchApp.fetch(url, {
     method: 'get',
-    headers: { Authorization: bsAuthHeader_(), Accept: 'application/json' },
+    headers: bsAuthHeaders_(),
     muteHttpExceptions: true,
   });
   const code = res.getResponseCode();
@@ -47,7 +73,7 @@ function bsSyncRender(templateUuid, variables) {
   const res = UrlFetchApp.fetch(url, {
     method: 'post',
     contentType: 'application/json',
-    headers: { Authorization: bsAuthHeader_(), Accept: 'application/json' },
+    headers: bsAuthHeaders_(),
     payload: JSON.stringify(payload),
     muteHttpExceptions: true,
   });

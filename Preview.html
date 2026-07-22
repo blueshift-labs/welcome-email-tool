@@ -53,6 +53,7 @@
       <div id="ccGroups"></div>
       <label class="fld">Add custom Cc (comma separated)</label>
       <input type="text" id="ccCustom" placeholder="name@company.com, ...">
+      <div id="peopleHint" class="muted" style="margin-top:4px;"></div>
 
       <h3 style="margin-top:12px;">Bcc</h3>
       <div id="bccGroup" class="group"></div>
@@ -101,8 +102,23 @@
     wrap.innerHTML = html || '<div class="muted">No variables mapped. Set FIELD_MAP in Config.gs.</div>';
   })();
 
+  // ---- test-row warning ----
+  if (DATA.isTest) {
+    var warn = document.createElement('div');
+    warn.className = 'err';
+    warn.style.margin = '0 0 8px';
+    warn.textContent = '⚠ This looks like a TEST row (company/site contains “test”). Double-check before sending.';
+    document.body.insertBefore(warn, document.body.firstChild);
+  }
+
   // ---- To ----
   el('to').value = (DATA.to || []).join(', ');
+
+  // ---- default Cc = submitting sales rep; hint = additional people from form ----
+  el('ccCustom').value = DATA.salesRep || '';
+  if (DATA.additionalPeople) {
+    el('peopleHint').textContent = 'From form (add manually if needed): ' + DATA.additionalPeople;
+  }
 
   // ---- Cc groups ----
   (function initCc() {
