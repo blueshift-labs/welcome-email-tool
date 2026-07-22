@@ -183,8 +183,12 @@
     };
     el('status').textContent = 'Creating draft…';
     google.script.run
-      .withSuccessHandler(function () {
-        el('status').innerHTML = '<span class="msg">Draft created — open Gmail → Drafts to review and send.</span>';
+      .withSuccessHandler(function (result) {
+        el('status').innerHTML = '<span class="msg">Draft created! Opening Gmail...</span>';
+        // Open Gmail drafts in a new tab
+        if (result && result.url) {
+          window.open(result.url, '_blank');
+        }
       })
       .withFailureHandler(function (e) { el('status').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; })
       .createWelcomeDraft(payload);

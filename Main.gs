@@ -132,5 +132,14 @@ function createWelcomeDraft(payload) {
     bcc: (payload.bcc || []).join(','),
   };
   const draft = GmailApp.createDraft(to, payload.subject || '', payload.text || '', options);
-  return { id: draft.getId() };
+  const draftId = draft.getId();
+
+  // Generate Gmail URL to open the draft
+  // Format: https://mail.google.com/mail/u/0/#drafts (opens drafts folder)
+  const gmailUrl = 'https://mail.google.com/mail/u/0/#drafts';
+
+  return {
+    id: draftId,
+    url: gmailUrl
+  };
 }
