@@ -106,8 +106,12 @@ function setupSampleResponses() {
   ];
 
   // Check if headers exist
-  const existingHeaders = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues()[0];
-  const hasHeaders = existingHeaders.some(h => h !== '');
+  const lastCol = responseSheet.getLastColumn();
+  let hasHeaders = false;
+  if (lastCol > 0) {
+    const existingHeaders = responseSheet.getRange(1, 1, 1, lastCol).getValues()[0];
+    hasHeaders = existingHeaders.some(h => h !== '');
+  }
 
   if (!hasHeaders) {
     // Add headers
