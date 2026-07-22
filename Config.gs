@@ -33,23 +33,95 @@ const CONFIG = {
 };
 
 /**
- * FIELD_MAP: template variable name  ->  a distinctive piece of the column header.
- * LEFT  = the variable your Blueshift welcome/kickoff template expects at the top.
- * RIGHT = enough of the Form Responses column header to identify it.
- * Rename the LEFT side to match your real template variable names.
+ * FIELD_MAP: template variable name  ->  column header in Form Responses sheet.
+ * LEFT  = the variable your Blueshift template expects (matches {% assign X = X %})
+ * RIGHT = the exact column header in your Form Responses sheet
  */
 const FIELD_MAP = {
-  company:              'Company Name',
-  website:              'Site name',
-  primary_contact:      'Primary Contact',       // exact match wins over the email/role columns
-  primary_contact_role: 'Primary contact role',
-  primary_admin:        'Primary Admin',
-  primary_admin_role:   'Primary Admin Role',
-  support_level:        'Support Level',
-  platform_tier:        'Platform Tier',
-  features:             'Which Blueshift features are included',
-  contract_start:       'Contract Start Date',
-  kickoff_date:         'Desired Kick-Off Date',
-  go_live_date:         'Is there an expected',   // the "go live" date header (has smart quotes)
-  deal_description:     'Description of company/deal',
+  // === Customer Info ===
+  customer: 'Company Name',
+  account: 'Site name',
+  website: 'Website URL',
+  alias: 'Email Alias',
+
+  // Additional customers (for multi-site setups)
+  customer2: 'Additional Customer 2',
+  account2: 'Additional Account 2',
+  website2: 'Additional Website 2',
+  account3: 'Additional Account 3',
+  account4: 'Additional Account 4',
+  account5: 'Additional Account 5',
+
+  // === Plan & Features ===
+  plan: 'Plan',
+  platform_tier: 'Platform Tier',
+  support_level: 'Support Level',
+  features: 'Which Blueshift features are included',
+
+  // === Team Assignment Flags (Yes/No) ===
+  pm_included: 'PM Included',
+  deliv_included: 'Delivery Included',
+  deliv_assigned: 'Delivery Assigned',
+  pc_assigned: 'Product Consultant Assigned',
+  csm_assigned: 'CSM Assigned',
+
+  // === Team Members ===
+  product_consultant: 'Product Consultant Name',
+  product_consultant_email: 'Product Consultant Email',
+  csm: 'CSM Name',
+  csm_email: 'CSM Email',
+  deliv_strat: 'Delivery Strategist Name',
+  deliv_strat_email: 'Delivery Strategist Email',
+  pm: 'Project Manager Name',
+  pm_email: 'Project Manager Email',
+
+  // === Client Contacts ===
+  client1_first: 'Primary Contact First Name',
+  client1_last: 'Primary Contact Last Name',
+  client1_email: 'Primary contact email',
+
+  client2_first: 'Primary Admin First Name',
+  client2_last: 'Primary Admin Last Name',
+  client2_email: 'Primary Admin Email',
+
+  client3_first: 'Additional Contact 3 First Name',
+  client3_last: 'Additional Contact 3 Last Name',
+  client3_email: 'Additional Contact 3 Email',
+
+  client4_first: 'Additional Contact 4 First Name',
+  client4_last: 'Additional Contact 4 Last Name',
+  client4_email: 'Additional Contact 4 Email',
+
+  client5_first: 'Additional Contact 5 First Name',
+  client5_last: 'Additional Contact 5 Last Name',
+  client5_email: 'Additional Contact 5 Email',
+
+  client6_first: 'Additional Contact 6 First Name',
+  client6_last: 'Additional Contact 6 Last Name',
+  client6_email: 'Additional Contact 6 Email',
+
+  client7_first: 'Additional Contact 7 First Name',
+  client7_last: 'Additional Contact 7 Last Name',
+  client7_email: 'Additional Contact 7 Email',
+
+  // === Meeting Info ===
+  scheduled_kickoff: 'Kickoff Scheduled',
+  kickoff_url: 'Kickoff Meeting URL',
+  kickoff_date: 'Desired Kick-Off Date',
+  data_overview_url: 'Data Overview URL',
+  schedule_weekly: 'Weekly Sync Scheduled',
+  weekly_sync_url: 'Weekly Sync URL',
+  quickstart_deliv_only: 'QuickStart Delivery Only',
+  deliv_url: 'Delivery Session URL',
+
+  // === Onboarding ===
+  include_oq: 'Include Onboarding Questions',
+  onboarding_Q: 'Onboarding Questions',
+
+  // === Dates ===
+  contract_start: 'Contract Start Date',
+  go_live_date: 'Expected Go Live Date',
+
+  // === Other ===
+  deal_description: 'Description of company/deal',
 };
