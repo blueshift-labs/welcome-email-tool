@@ -127,19 +127,35 @@
           el('templateMsg').innerHTML = '<span class="err">Could not load template: ' + esc(details.error) + '</span>';
           return;
         }
+
+        // Debug: log what we received
+        console.log('Template details received:', details);
+
         TEMPLATE_VARS = details.variables || [];
 
-        // Show debug info
+        // Build debug info
         var msg = 'Template loaded (' + TEMPLATE_VARS.length + ' variables found)';
-        if (details.raw_template_preview) {
-          msg += ' <br><details style="margin-top:4px;"><summary style="cursor:pointer;" class="muted">Show raw template preview</summary><pre style="font-size:10px;background:#f5f5f5;padding:4px;overflow:auto;max-height:100px;">' + esc(details.raw_template_preview) + '</pre></details>';
-        }
+
+        // Show ALL fields we got back for debugging
+        msg += '<br><details style="margin-top:4px;"><summary style="cursor:pointer;" class="muted">Debug: Show full response</summary>';
+        msg += '<pre style="font-size:10px;background:#f5f5f5;padding:4px;overflow:auto;max-height:200px;">';
+        msg += 'UUID: ' + esc(details.uuid || 'none') + '\n';
+        msg += 'Name: ' + esc(details.name || 'none') + '\n';
+        msg += 'Subject length: ' + (details.subject || '').length + ' chars\n';
+        msg += 'HTML length: ' + (details.html_content || '').length + ' chars\n';
+        msg += 'Text length: ' + (details.text_content || '').length + ' chars\n';
+        msg += 'Variables: ' + JSON.stringify(details.variables) + '\n\n';
+        msg += '--- First 500 chars of HTML ---\n';
+        msg += esc(details.raw_template_preview || details.html_content || 'none').substring(0, 500);
+        msg += '</pre></details>';
+
         el('templateMsg').innerHTML = '<span class="msg">' + msg + '</span>';
 
         renderVariableFields();
       })
       .withFailureHandler(function(e) {
         el('templateMsg').innerHTML = '<span class="err">Error loading template: ' + esc(e.message) + '</span>';
+        console.error('Failed to load template:', e);
       })
       .getTemplateDetails(templateUuid);
   }
