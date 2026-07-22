@@ -31,7 +31,11 @@
     <!-- LEFT: template + variables + preview -->
     <div class="col">
       <h3>Template</h3>
-      <select id="template"></select>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <select id="template" style="flex:1;"></select>
+        <button class="btn ghost" id="loadVarsBtn" style="white-space:nowrap;">Load Variables</button>
+      </div>
+      <span id="templateMsg" class="muted" style="display:block;margin-top:4px;"></span>
 
       <h3 style="margin-top:12px;">Variables <span class="muted">(edit before rendering)</span></h3>
       <div id="vars"></div>
@@ -95,27 +99,32 @@
       sel.innerHTML = opts;
     }
 
-    // Add event listener for template changes
+    // Add event listener for template changes (just clear the message)
     el('template').addEventListener('change', function() {
-      loadTemplateVariables(this.value);
+      el('templateMsg').innerHTML = '<span class="muted">Click "Load Variables" to see what this template needs</span>';
     });
 
-    // Load initial template variables if a template is selected
-    if (el('template').value) {
-      loadTemplateVariables(el('template').value);
-    }
+    // Add click handler for Load Variables button
+    el('loadVarsBtn').addEventListener('click', function() {
+      var templateUuid = el('template').value;
+      if (!templateUuid) {
+        el('templateMsg').innerHTML = '<span class="err">Please select a template first</span>';
+        return;
+      }
+      loadTemplateVariables(templateUuid);
+    });
   })();
 
   // ---- Load template variables from Blueshift ----
   function loadTemplateVariables(templateUuid) {
     if (!templateUuid) return;
 
-    el('renderMsg').innerHTML = '<span class="muted">Loading template variables...</span>';
+    el('templateMsg').innerHTML = '<span class="muted">Loading template variables...</span>';
 
     google.script.run
       .withSuccessHandler(function(details) {
         if (details.error) {
-          el('renderMsg').innerHTML = '<span class="err">Could not load template: ' + esc(details.error) + '</span>';
+          el('templateMsg').innerHTML = '<span class="err">Could not load template: ' + esc(details.error) + '</span>';
           return;
         }
         TEMPLATE_VARS = details.variables || [];
@@ -125,12 +134,12 @@
         if (details.raw_template_preview) {
           msg += ' <br><details style="margin-top:4px;"><summary style="cursor:pointer;" class="muted">Show raw template preview</summary><pre style="font-size:10px;background:#f5f5f5;padding:4px;overflow:auto;max-height:100px;">' + esc(details.raw_template_preview) + '</pre></details>';
         }
-        el('renderMsg').innerHTML = '<span class="msg">' + msg + '</span>';
+        el('templateMsg').innerHTML = '<span class="msg">' + msg + '</span>';
 
         renderVariableFields();
       })
       .withFailureHandler(function(e) {
-        el('renderMsg').innerHTML = '<span class="err">Error loading template: ' + esc(e.message) + '</span>';
+        el('templateMsg').innerHTML = '<span class="err">Error loading template: ' + esc(e.message) + '</span>';
       })
       .getTemplateDetails(templateUuid);
   }
