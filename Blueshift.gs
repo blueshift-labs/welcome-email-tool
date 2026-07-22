@@ -100,7 +100,8 @@ function bsGetTemplateDetails(templateUuid) {
 
 /**
  * Extract variable names from template content.
- * Blueshift uses {{variable_name}} or {{ variable_name }} format.
+ * Blueshift uses Liquid syntax: {{variable}}, {{user.attribute}}, {{bsft_event_context.var}}
+ * Also handles filters: {{variable | upcase}}
  */
 function extractTemplateVariables_(template) {
   const variables = [];
@@ -113,16 +114,26 @@ function extractTemplateVariables_(template) {
     template.text_content || ''
   ].join(' ');
 
-  // Find all {{variable}} patterns
-  // Regex: {{ whitespace variable_name whitespace }}
-  const regex = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+  // Find all {{...}} patterns (Liquid output tags)
+  // Matches: {{variable}}, {{user.firstname}}, {{var | upcase}}, etc.
+  // Regex: {{ whitespace [variable_path] (optional: | filter) whitespace }}
+  const regex = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_\.]*)\s*(?:\|[^\}]*)?\}\}/g;
   let match;
 
   while ((match = regex.exec(content)) !== null) {
-    const varName = match[1];
-    if (!seen[varName]) {
-      seen[varName] = true;
-      variables.push(varName);
+    const fullPath = match[1]; // e.g., "user.firstname" or "bsft_event_context.name"
+
+    // For event context variables, strip the prefix
+    let displayName = fullPath;
+    if (fullPath.startsWith('bsft_event_context.')) {
+      // {{bsft_event_context.deal_name}} -> show as "deal_name"
+      displayName = fullPath.substring('bsft_event_context.'.length);
+    }
+    // Keep user.* as-is to show it's a user attribute
+
+    if (!seen[displayName]) {
+      seen[displayName] = true;
+      variables.push(displayName);
     }
   }
 
