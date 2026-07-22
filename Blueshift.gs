@@ -81,13 +81,20 @@ function bsGetTemplateDetails(templateUuid) {
   // Extract variables from the template HTML/text content
   const variables = extractTemplateVariables_(template);
 
+  // Log for debugging (visible in Apps Script execution logs)
+  Logger.log('Template UUID: ' + templateUuid);
+  Logger.log('Variables found: ' + JSON.stringify(variables));
+  Logger.log('Subject preview: ' + (template.subject || '').substring(0, 100));
+  Logger.log('HTML preview: ' + (template.html_content || '').substring(0, 200));
+
   return {
     uuid: template.uuid,
     name: template.name,
     subject: template.subject || '',
     html_content: template.html_content || '',
     text_content: template.text_content || '',
-    variables: variables
+    variables: variables,
+    raw_template_preview: (template.html_content || '').substring(0, 500) // Return preview for debugging
   };
 }
 
