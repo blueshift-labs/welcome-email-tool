@@ -105,12 +105,37 @@ function setupSampleResponses() {
     ...Object.values(FIELD_MAP)
   ];
 
-  // Check if headers exist
+  // Check if headers exist and match expected structure
   const lastCol = responseSheet.getLastColumn();
   let hasHeaders = false;
+  let needsRebuild = false;
+
   if (lastCol > 0) {
     const existingHeaders = responseSheet.getRange(1, 1, 1, lastCol).getValues()[0];
     hasHeaders = existingHeaders.some(h => h !== '');
+
+    // Check if column count matches - if not, we need to rebuild
+    if (hasHeaders && lastCol !== headers.length) {
+      needsRebuild = true;
+    }
+  }
+
+  if (needsRebuild) {
+    const ui = SpreadsheetApp.getUi();
+    const response = ui.alert(
+      'Sheet Structure Mismatch',
+      `Your sheet has ${lastCol} columns but we expect ${headers.length}.\n\n` +
+      'Would you like to clear and rebuild the sheet with the correct structure?',
+      ui.ButtonSet.YES_NO
+    );
+
+    if (response === ui.Button.YES) {
+      responseSheet.clear();
+      hasHeaders = false;
+    } else {
+      ui.alert('Setup cancelled. Please manually adjust your sheet columns.');
+      return;
+    }
   }
 
   if (!hasHeaders) {
