@@ -5,7 +5,7 @@
 
 # Google Apps Script
 .clasp.json
-.claspignore
+# .claspignore is committed - it helps other devs know what to exclude
 
 # Node modules (if using clasp CLI)
 node_modules/

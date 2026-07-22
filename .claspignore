@@ -1,0 +1,26 @@
+# Documentation files (not needed in Apps Script)
+README.md
+SETUP.md
+DEPLOYMENT.md
+CONTRIBUTING.md
+LICENSE
+
+# Git files
+.git/**
+.gitignore
+
+# clasp files
+.clasp.json.example
+.claspignore
+
+# IDE and OS files
+.DS_Store
+.vscode/**
+.idea/**
+*.swp
+*.swo
+
+# Node modules
+node_modules/**
+package.json
+package-lock.json
