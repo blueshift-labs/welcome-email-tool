@@ -152,6 +152,13 @@ function bsSyncRender(templateUuid, variables) {
     template_uuid: templateUuid,
     transaction_uuid: Utilities.getUuid(),  // required unique id for this render
   }, variables || {});
+
+  // Log what we're sending (visible in Apps Script execution logs)
+  Logger.log('=== Calling sync_render ===');
+  Logger.log('Template UUID: ' + templateUuid);
+  Logger.log('Variables being sent: ' + JSON.stringify(variables));
+  Logger.log('Full payload: ' + JSON.stringify(payload));
+
   const res = UrlFetchApp.fetch(url, {
     method: 'post',
     contentType: 'application/json',
@@ -161,9 +168,16 @@ function bsSyncRender(templateUuid, variables) {
   });
   const code = res.getResponseCode();
   const body = JSON.parse(res.getContentText() || '{}');
+
+  // Log response
+  Logger.log('Response code: ' + code);
   if (code !== 200 || body.success === false) {
+    Logger.log('ERROR Response: ' + res.getContentText());
     throw new Error('Render failed (' + code + '): ' + res.getContentText());
   }
+
+  Logger.log('Render SUCCESS - Subject: ' + (body.subject || 'none'));
+
   return {
     subject: body.subject || '',
     html: body.html_content || '',
