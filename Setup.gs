@@ -99,9 +99,10 @@ function setupSampleResponses() {
   }
 
   // Get headers from FIELD_MAP (right side = column headers)
+  const emailCols = CONFIG.TO_EMAIL_COLUMNS || [CONFIG.TO_EMAIL_COLUMN];
   const headers = [
     'Timestamp',
-    CONFIG.TO_EMAIL_COLUMN,
+    ...emailCols,
     ...Object.values(FIELD_MAP)
   ];
 
@@ -147,36 +148,44 @@ function setupSampleResponses() {
       .setFontColor('white');
   }
 
-  // Add sample data
-  const sampleData = [
-    [
-      new Date(),
-      'customer1@example.com',
-      'Alice',
-      'Johnson',
-      'Acme Corporation',
-      'Enterprise',
-      '2026-08-01'
-    ],
-    [
-      new Date(),
-      'customer2@example.com',
-      'Bob',
-      'Martinez',
-      'TechStart Inc',
-      'Professional',
-      '2026-08-15'
-    ],
-    [
-      new Date(),
-      'customer3@example.com',
-      'Carol',
-      'Williams',
-      'Global Solutions LLC',
-      'Enterprise',
-      '2026-09-01'
-    ],
-  ];
+  // Create sample data dynamically to match headers
+  // Build sample rows with the right number of columns
+  const sampleData = [];
+  const numDataRows = 3;
+
+  for (let i = 1; i <= numDataRows; i++) {
+    const row = [new Date()]; // Timestamp
+
+    // Add values for email columns
+    emailCols.forEach(function(col, idx) {
+      row.push('customer' + i + '@example.com');
+    });
+
+    // Add values for FIELD_MAP columns (use generic test data)
+    Object.keys(FIELD_MAP).forEach(function(key) {
+      if (key.includes('contact') || key.includes('admin')) {
+        row.push('Person ' + i);
+      } else if (key.includes('role')) {
+        row.push('Role ' + i);
+      } else if (key.includes('date')) {
+        row.push('2026-08-0' + i);
+      } else if (key.includes('company')) {
+        row.push('Company ' + i);
+      } else if (key.includes('website') || key.includes('site')) {
+        row.push('site' + i + '.example.com');
+      } else if (key.includes('tier') || key.includes('level')) {
+        row.push('Tier ' + i);
+      } else if (key.includes('features')) {
+        row.push('Feature A, Feature B');
+      } else if (key.includes('description')) {
+        row.push('Sample description for test data row ' + i);
+      } else {
+        row.push('Sample value ' + i);
+      }
+    });
+
+    sampleData.push(row);
+  }
 
   const lastRow = responseSheet.getLastRow();
   responseSheet.getRange(lastRow + 1, 1, sampleData.length, headers.length).setValues(sampleData);
