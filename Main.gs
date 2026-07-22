@@ -13,9 +13,13 @@ function onOpen() {
       .addItem('Clear Authentication', 'clearAuthPrompt'))
     .addSeparator()
     .addSubMenu(SpreadsheetApp.getUi().createMenu('Setup')
-      .addItem('Run Setup Wizard', 'setupEverything')
+      .addItem('Complete Welcome Email Setup', 'setupWelcomeEmailComplete')
+      .addSeparator()
+      .addItem('Setup Welcome Email Columns', 'setupWelcomeEmailColumns')
+      .addItem('Add Sample Welcome Data', 'setupWelcomeSampleData')
+      .addSeparator()
       .addItem('Create Roster Tab', 'setupRosterTab')
-      .addItem('Add Sample Data', 'setupSampleResponses'))
+      .addItem('Run Basic Setup', 'setupEverything'))
     .addToUi();
 }
 
