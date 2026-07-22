@@ -22,6 +22,8 @@
   .msg { font-size: 12px; color: #188038; }
   .err { font-size: 12px; color: #c5221f; }
   .muted { color: #5f6368; font-size: 11px; }
+  input[data-var] { transition: border 0.2s; }
+  input[data-var]:focus { outline: none; border: 1px solid #1a73e8; }
 </style>
 </head>
 <body>
@@ -75,6 +77,8 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
     return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' })[c]; }); }
 
+  var TEMPLATE_VARS = []; // Store template variables when fetched
+
   // ---- template dropdown ----
   (function initTemplates() {
     var sel = el('template');
@@ -90,16 +94,74 @@
     } else {
       sel.innerHTML = opts;
     }
+
+    // Add event listener for template changes
+    el('template').addEventListener('change', function() {
+      loadTemplateVariables(this.value);
+    });
+
+    // Load initial template variables if a template is selected
+    if (el('template').value) {
+      loadTemplateVariables(el('template').value);
+    }
   })();
+
+  // ---- Load template variables from Blueshift ----
+  function loadTemplateVariables(templateUuid) {
+    if (!templateUuid) return;
+
+    el('renderMsg').innerHTML = '<span class="muted">Loading template variables...</span>';
+
+    google.script.run
+      .withSuccessHandler(function(details) {
+        if (details.error) {
+          el('renderMsg').innerHTML = '<span class="err">Could not load template: ' + esc(details.error) + '</span>';
+          return;
+        }
+        TEMPLATE_VARS = details.variables || [];
+        el('renderMsg').innerHTML = '<span class="msg">Template loaded (' + TEMPLATE_VARS.length + ' variables found)</span>';
+        renderVariableFields();
+      })
+      .withFailureHandler(function(e) {
+        el('renderMsg').innerHTML = '<span class="err">Error loading template: ' + esc(e.message) + '</span>';
+      })
+      .getTemplateDetails(templateUuid);
+  }
+
+  // ---- Render variable fields combining mapped + template variables ----
+  function renderVariableFields() {
+    var wrap = el('vars');
+    var html = '';
+    var seen = {};
+
+    // First, show all template variables (what Blueshift expects)
+    TEMPLATE_VARS.forEach(function(varName) {
+      var value = DATA.variables[varName] || '';
+      var isMapped = DATA.variables.hasOwnProperty(varName);
+      var style = isMapped ? '' : 'border-left: 3px solid #fbbc04;'; // Yellow border for unmapped
+      var hint = isMapped ? '' : ' <span class="muted">(not mapped - add value)</span>';
+
+      html += '<label class="fld">' + esc(varName) + hint + '</label>'
+        + '<input type="text" data-var="' + esc(varName) + '" value="' + esc(value) + '" style="' + style + '">';
+      seen[varName] = true;
+    });
+
+    // Then show any mapped variables that aren't in the template (extras from FIELD_MAP)
+    Object.keys(DATA.variables || {}).forEach(function (k) {
+      if (!seen[k]) {
+        html += '<label class="fld">' + esc(k) + ' <span class="muted">(extra - not in template)</span></label>'
+          + '<input type="text" data-var="' + esc(k) + '" value="' + esc(DATA.variables[k]) + '" style="border-left: 3px solid #5f6368;">';
+      }
+    });
+
+    wrap.innerHTML = html || '<div class="muted">No variables found. Select a template to see required variables.</div>';
+  }
 
   // ---- variable fields ----
   (function initVars() {
-    var wrap = el('vars'); var html = '';
-    Object.keys(DATA.variables || {}).forEach(function (k) {
-      html += '<label class="fld">' + esc(k) + '</label>'
-        + '<input type="text" data-var="' + esc(k) + '" value="' + esc(DATA.variables[k]) + '">';
-    });
-    wrap.innerHTML = html || '<div class="muted">No variables mapped. Set FIELD_MAP in Config.gs.</div>';
+    // Initial render with just mapped variables
+    // Will be updated when template loads
+    renderVariableFields();
   })();
 
   // ---- test-row warning ----

@@ -114,6 +114,15 @@ function safeListTemplates_() {
   try { return bsListTemplates(); } catch (e) { return []; }
 }
 
+/** Called from the dialog to get template details including variables. */
+function getTemplateDetails(templateUuid) {
+  try {
+    return bsGetTemplateDetails(templateUuid);
+  } catch (e) {
+    return { error: String(e.message || e) };
+  }
+}
+
 /** Called from the dialog to (re)render the preview. */
 function renderForDialog(templateUuid, variables) {
   return bsSyncRender(templateUuid, variables);

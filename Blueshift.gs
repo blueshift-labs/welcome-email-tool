@@ -59,6 +59,70 @@ function bsListTemplates() {
 }
 
 /**
+ * Get full details for a specific template, including variables used.
+ * Returns template object with html_content, variables, etc.
+ */
+function bsGetTemplateDetails(templateUuid) {
+  if (!templateUuid) throw new Error('No template UUID provided.');
+
+  const url = CONFIG.BLUESHIFT_BASE + '/api/v1/email_templates/' + templateUuid + '.json';
+  const res = UrlFetchApp.fetch(url, {
+    method: 'get',
+    headers: bsAuthHeaders_(),
+    muteHttpExceptions: true,
+  });
+  const code = res.getResponseCode();
+  if (code !== 200) {
+    throw new Error('Get template failed (' + code + '): ' + res.getContentText());
+  }
+  const body = JSON.parse(res.getContentText() || '{}');
+  const template = body.template || body;
+
+  // Extract variables from the template HTML/text content
+  const variables = extractTemplateVariables_(template);
+
+  return {
+    uuid: template.uuid,
+    name: template.name,
+    subject: template.subject || '',
+    html_content: template.html_content || '',
+    text_content: template.text_content || '',
+    variables: variables
+  };
+}
+
+/**
+ * Extract variable names from template content.
+ * Blueshift uses {{variable_name}} or {{ variable_name }} format.
+ */
+function extractTemplateVariables_(template) {
+  const variables = [];
+  const seen = {};
+
+  // Combine all searchable content
+  const content = [
+    template.subject || '',
+    template.html_content || '',
+    template.text_content || ''
+  ].join(' ');
+
+  // Find all {{variable}} patterns
+  // Regex: {{ whitespace variable_name whitespace }}
+  const regex = /\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g;
+  let match;
+
+  while ((match = regex.exec(content)) !== null) {
+    const varName = match[1];
+    if (!seen[varName]) {
+      seen[varName] = true;
+      variables.push(varName);
+    }
+  }
+
+  return variables.sort();
+}
+
+/**
  * Render a template WITHOUT sending (sync_render).
  * Returns { subject, html, text }. Pass your cleaned variables as `variables`.
  * No customer lookup — it renders purely from what you pass in.
