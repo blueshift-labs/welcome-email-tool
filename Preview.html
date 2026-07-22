@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<base target="_top">
+<style>
+  body { font-family: -apple-system, Roboto, Arial, sans-serif; margin: 0; padding: 14px; color: #202124; font-size: 13px; }
+  h3 { margin: 6px 0 4px; font-size: 13px; }
+  .row { display: flex; gap: 14px; }
+  .col { flex: 1; min-width: 0; }
+  label.fld { display: block; font-size: 11px; color: #5f6368; margin: 8px 0 2px; }
+  input[type=text], textarea, select { width: 100%; box-sizing: border-box; padding: 6px; border: 1px solid #dadce0; border-radius: 6px; font-size: 12px; }
+  textarea { resize: vertical; }
+  .group { border: 1px solid #eee; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
+  .group b { font-size: 11px; color: #5f6368; text-transform: uppercase; letter-spacing: .04em; }
+  .chk { display: block; margin: 3px 0; font-size: 12px; }
+  iframe { width: 100%; height: 230px; border: 1px solid #dadce0; border-radius: 8px; background: #fff; }
+  .subj { font-weight: 600; padding: 6px 8px; background: #f1f3f4; border-radius: 6px; margin: 4px 0 8px; min-height: 18px; }
+  .btn { border: 0; border-radius: 8px; padding: 9px 14px; font-size: 13px; cursor: pointer; }
+  .primary { background: #1a73e8; color: #fff; }
+  .ghost { background: #f1f3f4; color: #202124; }
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 10px; }
+  .msg { font-size: 12px; color: #188038; }
+  .err { font-size: 12px; color: #c5221f; }
+  .muted { color: #5f6368; font-size: 11px; }
+</style>
+</head>
+<body>
+  <div class="row">
+    <!-- LEFT: template + variables + preview -->
+    <div class="col">
+      <h3>Template</h3>
+      <select id="template"></select>
+
+      <h3 style="margin-top:12px;">Variables <span class="muted">(edit before rendering)</span></h3>
+      <div id="vars"></div>
+
+      <div class="bar">
+        <button class="btn ghost" id="renderBtn">Render preview</button>
+        <span id="renderMsg" class="muted"></span>
+      </div>
+
+      <h3 style="margin-top:12px;">Preview</h3>
+      <div class="subj" id="subject"><span class="muted">Subject appears here after render</span></div>
+      <iframe id="preview"></iframe>
+    </div>
+
+    <!-- RIGHT: recipients -->
+    <div class="col">
+      <h3>To <span class="muted">(new customers)</span></h3>
+      <textarea id="to" rows="2" placeholder="comma or newline separated"></textarea>
+
+      <h3 style="margin-top:12px;">Cc</h3>
+      <div id="ccGroups"></div>
+      <label class="fld">Add custom Cc (comma separated)</label>
+      <input type="text" id="ccCustom" placeholder="name@company.com, ...">
+
+      <h3 style="margin-top:12px;">Bcc</h3>
+      <div id="bccGroup" class="group"></div>
+      <label class="fld">Add custom Bcc (comma separated)</label>
+      <input type="text" id="bccCustom" placeholder="alias@company.com, ...">
+    </div>
+  </div>
+
+  <div class="bar">
+    <span id="status"></span>
+    <button class="btn primary" id="draftBtn">Create Gmail draft</button>
+  </div>
+
+<script>
+  var DATA = <?!= data ?>;
+  var RENDERED = { subject: '', html: '', text: '' };
+
+  function el(id) { return document.getElementById(id); }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) {
+    return ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' })[c]; }); }
+
+  // ---- template dropdown ----
+  (function initTemplates() {
+    var sel = el('template');
+    var opts = '';
+    (DATA.templates || []).forEach(function (t) {
+      var d = (t.uuid === DATA.defaultTemplate) ? ' selected' : '';
+      opts += '<option value="' + esc(t.uuid) + '"' + d + '>' + esc(t.name) + '</option>';
+    });
+    if (!opts) {
+      // No list (e.g. key not set yet) — allow manual UUID entry.
+      sel.outerHTML = '<input type="text" id="template" placeholder="template UUID" value="'
+        + esc(DATA.defaultTemplate || '') + '">';
+    } else {
+      sel.innerHTML = opts;
+    }
+  })();
+
+  // ---- variable fields ----
+  (function initVars() {
+    var wrap = el('vars'); var html = '';
+    Object.keys(DATA.variables || {}).forEach(function (k) {
+      html += '<label class="fld">' + esc(k) + '</label>'
+        + '<input type="text" data-var="' + esc(k) + '" value="' + esc(DATA.variables[k]) + '">';
+    });
+    wrap.innerHTML = html || '<div class="muted">No variables mapped. Set FIELD_MAP in Config.gs.</div>';
+  })();
+
+  // ---- To ----
+  el('to').value = (DATA.to || []).join(', ');
+
+  // ---- Cc groups ----
+  (function initCc() {
+    var wrap = el('ccGroups'); var cc = (DATA.roster && DATA.roster.cc) || {}; var html = '';
+    Object.keys(cc).forEach(function (g) {
+      html += '<div class="group"><b>' + esc(g) + '</b>';
+      cc[g].forEach(function (p) {
+        html += '<label class="chk"><input type="checkbox" class="ccChk" value="' + esc(p.email) + '"'
+          + (p.checked ? ' checked' : '') + '> ' + esc(p.name) + ' <span class="muted">&lt;' + esc(p.email) + '&gt;</span></label>';
+      });
+      html += '</div>';
+    });
+    wrap.innerHTML = html || '<div class="muted">No Cc roster found (add a "Roster" tab).</div>';
+  })();
+
+  // ---- Bcc ----
+  (function initBcc() {
+    var wrap = el('bccGroup'); var bcc = (DATA.roster && DATA.roster.bcc) || []; var html = '<b>Notify</b>';
+    bcc.forEach(function (p) {
+      html += '<label class="chk"><input type="checkbox" class="bccChk" value="' + esc(p.email) + '"'
+        + (p.checked ? ' checked' : '') + '> ' + esc(p.name) + ' <span class="muted">&lt;' + esc(p.email) + '&gt;</span></label>';
+    });
+    if (bcc.length === 0) html += '<div class="muted">No Bcc roster found.</div>';
+    wrap.innerHTML = html;
+  })();
+
+  function templateUuid() { return el('template').value.trim(); }
+  function collectVars() {
+    var out = {};
+    document.querySelectorAll('[data-var]').forEach(function (i) { out[i.getAttribute('data-var')] = i.value; });
+    return out;
+  }
+  function splitEmails(s) { return (s || '').split(/[;,\n]/).map(function (x){return x.trim();}).filter(Boolean); }
+  function checkedVals(cls) {
+    return Array.prototype.map.call(document.querySelectorAll('.' + cls + ':checked'), function (c){ return c.value; });
+  }
+
+  // ---- render ----
+  el('renderBtn').onclick = function () {
+    el('renderMsg').textContent = 'Rendering…';
+    google.script.run
+      .withSuccessHandler(function (r) {
+        RENDERED = r;
+        el('subject').textContent = r.subject || '(no subject)';
+        el('preview').srcdoc = r.html || '<p style="color:#888">(empty)</p>';
+        el('renderMsg').textContent = 'Rendered.';
+      })
+      .withFailureHandler(function (e) { el('renderMsg').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; })
+      .renderForDialog(templateUuid(), collectVars());
+  };
+
+  // ---- create draft ----
+  el('draftBtn').onclick = function () {
+    if (!RENDERED.html) { el('status').innerHTML = '<span class="err">Render the preview first.</span>'; return; }
+    var payload = {
+      to: splitEmails(el('to').value),
+      cc: checkedVals('ccChk').concat(splitEmails(el('ccCustom').value)),
+      bcc: checkedVals('bccChk').concat(splitEmails(el('bccCustom').value)),
+      subject: RENDERED.subject,
+      html: RENDERED.html,
+      text: RENDERED.text,
+    };
+    el('status').textContent = 'Creating draft…';
+    google.script.run
+      .withSuccessHandler(function () {
+        el('status').innerHTML = '<span class="msg">Draft created — open Gmail → Drafts to review and send.</span>';
+      })
+      .withFailureHandler(function (e) { el('status').innerHTML = '<span class="err">' + esc(e.message) + '</span>'; })
+      .createWelcomeDraft(payload);
+  };
+</script>
+</body>
+</html>
