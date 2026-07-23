@@ -177,6 +177,14 @@ function bsSyncRender(templateUuid, variables) {
   }
 
   Logger.log('Render SUCCESS - Subject: ' + (body.subject || 'none'));
+  Logger.log('HTML preview (first 500 chars): ' + (body.html_content || '').substring(0, 500));
+
+  // Check for unexpected content in response
+  const htmlContent = body.html_content || '';
+  if (htmlContent.indexOf('claude doctor') !== -1 || htmlContent.indexOf('Auto-update') !== -1) {
+    Logger.log('WARNING: Found Claude Code CLI message in HTML content!');
+    Logger.log('Full HTML: ' + htmlContent);
+  }
 
   return {
     subject: body.subject || '',
