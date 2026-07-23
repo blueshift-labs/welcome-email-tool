@@ -41,16 +41,21 @@ function setupRosterTab() {
     .setBackground('#4285f4')
     .setFontColor('white');
 
-  // Add sample data
+  // Add real team data - CSM and Sales
   const sampleData = [
-    ['CSM', 'Jane Doe', 'jane@company.com', 'yes'],
-    ['CSM', 'John Smith', 'john@company.com', ''],
-    ['Sales', 'Rob Wilson', 'rob@company.com', 'yes'],
-    ['Sales', 'Sarah Chen', 'sarah@company.com', ''],
-    ['SE', 'Amy Lee', 'amy@company.com', 'yes'],
-    ['SE', 'Mike Johnson', 'mike@company.com', ''],
-    ['Bcc', 'Operations Team', 'ops@company.com', 'yes'],
-    ['Bcc', 'Success Team', 'success@company.com', ''],
+    // CSM Team
+    ['CSM', 'Maura McKendry', 'maura.mckendry@getblueshift.com', 'yes'],
+    ['CSM', 'Debbie Shinske', 'debbie.shinske@getblueshift.com', ''],
+    ['CSM', 'Rutvik Ghanote', 'rutvik.ghanote@getblueshift.com', ''],
+    ['CSM', 'Mannie Frances', 'mannie.frances@getblueshift.com', ''],
+
+    // Sales Team
+    ['Sales', 'Grig Higgens', 'grig.higgens@getblueshift.com', 'yes'],
+    ['Sales', 'Ajay Sundar', 'ajay.sundar@getblueshift.com', ''],
+    ['Sales', 'Stan Szeto', 'stan@blueshift.com', ''],
+
+    // Bcc - Operations/Notifications
+    ['Bcc', 'Operations Team', 'ops@getblueshift.com', 'yes'],
   ];
 
   rosterSheet.getRange(2, 1, sampleData.length, headers.length).setValues(sampleData);
@@ -65,8 +70,11 @@ function setupRosterTab() {
 
   SpreadsheetApp.getUi().alert(
     'Roster Setup Complete',
-    `Created "${CONFIG.ROSTER_SHEET}" tab with sample data.\n\n` +
-    'Update the names and emails to match your team.',
+    `Created "${CONFIG.ROSTER_SHEET}" tab with your team roster:\n\n` +
+    '• 4 CSM team members (Maura is default)\n' +
+    '• 3 Sales team members (Grig is default)\n' +
+    '• 1 Bcc notification alias\n\n' +
+    'You can add/edit team members directly in the Roster tab.',
     SpreadsheetApp.getUi().ButtonSet.OK
   );
 }
