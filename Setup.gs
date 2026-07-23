@@ -41,7 +41,7 @@ function setupRosterTab() {
     .setBackground('#4285f4')
     .setFontColor('white');
 
-  // Add real team data - CSM and Sales
+  // Add real team data - CSM, Sales, Product Consultants
   const sampleData = [
     // CSM Team
     ['CSM', 'Maura McKendry', 'maura.mckendry@getblueshift.com', 'yes'],
@@ -53,6 +53,10 @@ function setupRosterTab() {
     ['Sales', 'Grig Higgens', 'grig.higgens@getblueshift.com', 'yes'],
     ['Sales', 'Ajay Sundar', 'ajay.sundar@getblueshift.com', ''],
     ['Sales', 'Stan Szeto', 'stan@blueshift.com', ''],
+
+    // Product Consultants
+    ['Product Consultant', 'Stephen Dunn', 'stephen.dunn@getblueshift.com', 'yes'],
+    ['Product Consultant', 'Robert Shopshear', 'robert@getblueshift.com', ''],
 
     // Bcc - Operations/Notifications
     ['Bcc', 'Operations Team', 'ops@getblueshift.com', 'yes'],
@@ -73,6 +77,7 @@ function setupRosterTab() {
     `Created "${CONFIG.ROSTER_SHEET}" tab with your team roster:\n\n` +
     '• 4 CSM team members (Maura is default)\n' +
     '• 3 Sales team members (Grig is default)\n' +
+    '• 2 Product Consultants (Stephen is default)\n' +
     '• 1 Bcc notification alias\n\n' +
     'You can add/edit team members directly in the Roster tab.',
     SpreadsheetApp.getUi().ButtonSet.OK
