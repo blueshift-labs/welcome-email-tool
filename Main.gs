@@ -107,8 +107,13 @@ function openWelcomeDialog() {
     };
     const t = HtmlService.createTemplateFromFile('Preview');
     t.data = JSON.stringify(data);
-    const html = t.evaluate().setWidth(760).setHeight(720);
-    SpreadsheetApp.getUi().showModalDialog(html, 'Welcome email — response row ' + rowObj.__row);
+    const html = t.evaluate().setWidth(900).setHeight(900);
+
+    // Build dialog title with customer name for context
+    const customerName = data.variables.customer || data.variables.company || 'Unknown Customer';
+    const dialogTitle = customerName + ' - Row ' + rowObj.__row;
+
+    SpreadsheetApp.getUi().showModalDialog(html, dialogTitle);
   } catch (e) {
     SpreadsheetApp.getUi().alert(String(e.message || e));
   }

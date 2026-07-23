@@ -13,7 +13,7 @@
   .group { border: 1px solid #eee; border-radius: 8px; padding: 8px; margin-bottom: 8px; }
   .group b { font-size: 11px; color: #5f6368; text-transform: uppercase; letter-spacing: .04em; }
   .chk { display: block; margin: 3px 0; font-size: 12px; }
-  iframe { width: 100%; height: 230px; border: 1px solid #dadce0; border-radius: 8px; background: #fff; }
+  iframe { width: 100%; height: 400px; border: 1px solid #dadce0; border-radius: 8px; background: #fff; }
   .subj { font-weight: 600; padding: 6px 8px; background: #f1f3f4; border-radius: 6px; margin: 4px 0 8px; min-height: 18px; }
   .btn { border: 0; border-radius: 8px; padding: 9px 14px; font-size: 13px; cursor: pointer; }
   .primary { background: #1a73e8; color: #fff; }
@@ -28,7 +28,7 @@
 </head>
 <body>
   <div class="row">
-    <!-- LEFT: template + variables + preview -->
+    <!-- LEFT: template + variables -->
     <div class="col">
       <h3>Template</h3>
       <div style="display:flex;gap:8px;align-items:center;">
@@ -44,10 +44,6 @@
         <button class="btn ghost" id="renderBtn">Render preview</button>
         <span id="renderMsg" class="muted"></span>
       </div>
-
-      <h3 style="margin-top:12px;">Preview</h3>
-      <div class="subj" id="subject"><span class="muted">Subject appears here after render</span></div>
-      <iframe id="preview"></iframe>
     </div>
 
     <!-- RIGHT: recipients -->
@@ -66,6 +62,13 @@
       <label class="fld">Add custom Bcc (comma separated)</label>
       <input type="text" id="bccCustom" placeholder="alias@company.com, ...">
     </div>
+  </div>
+
+  <!-- PREVIEW: full width below -->
+  <div style="margin-top:16px;">
+    <h3>Preview</h3>
+    <div class="subj" id="subject"><span class="muted">Subject appears here after render</span></div>
+    <iframe id="preview"></iframe>
   </div>
 
   <div class="bar">
